@@ -1,0 +1,12 @@
+source("./ReadSQL_Tools.R",encoding = "UTF-8")
+
+
+
+setwd("C:/Users/MHEH/OneDrive - Folkehelseinstituttet/Smittevern/Overvåking_antibiotikabruk/Deliverables")
+
+
+
+source("DataExtractionTools.R",encoding = "UTF-8")
+
+
+source("StartApp.R",encoding = "UTF-8")
