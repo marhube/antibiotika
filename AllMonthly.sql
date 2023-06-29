@@ -16,7 +16,19 @@ AND LEN(atc.ATCNr) = 7 -- Får ellers med to rader med kode 'J01'
 -- DROP TABLE IF EXISTS distinkte_relevante_ATC_koder
 -- SELECT TOP 20 * FROM #distinkte_relevante_ATC_koder
 --
-SELECT atc.ATCNR, '' AS Total,SUBSTRING(atc.ATCNr,1,4) AS ATC3,
+SELECT atc.ATCNR, '' AS Total,
+--
+CASE 
+	WHEN atc.ATCNr LIKE 'J01A%' THEN 'J01A tetracykliner'
+	WHEN atc.ATCNr LIKE 'J01B%' THEN 'J01B amfenikoler'
+	WHEN atc.ATCNr LIKE 'J01C%' THEN 'J01C penicilliner'
+	WHEN atc.ATCNr LIKE 'J01D%' THEN 'J01D cefalosporiner,monobaktamer og karbapenemer'
+	WHEN atc.ATCNr LIKE 'J01E%' THEN 'J01E sulfonamider og trimetoprim'
+	WHEN atc.ATCNr LIKE 'J01F%' THEN 'J01F makrolider, lincosamider og streptograminer'
+	WHEN atc.ATCNr LIKE 'J01G%' THEN 'J01G aminoglykosider'
+	WHEN atc.ATCNr LIKE 'J01M%' THEN 'J01M quinoloner'
+	WHEN atc.ATCNr LIKE 'J01X%' THEN 'J01X andre antibakterielle midler '
+END AS ATC3,
 --
 CASE 
 	WHEN (

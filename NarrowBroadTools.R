@@ -1,5 +1,3 @@
-print('Er naa inne i NarrowBroadTools8.R')
-#
 #************* Start importere biblioteker
 library(tidyverse)
 library(dplyr)

@@ -1,5 +1,3 @@
-print('Er naa inne i TotalTools.R')
-#
 #************* Start importere biblioteker
 library(tidyverse)
 library(dplyr)
@@ -15,8 +13,10 @@ setTitle.Total<- function(self){
   return(main_title)
 }
 #
+# Memo til selv: Total-tellinger skiller seg ut ved at det blir veldig liten forskjell på hvordan man lager kurveplott og arealplott
 createMonthlyPlot.Total <- function(self){
   main_title <- setTitle(self)
+  #
   month_plot <- ggplot(
     self$plotData,
     aes(x=firstMonthDay,y=DDD_1000innb_dogn))  +
@@ -24,8 +24,6 @@ createMonthlyPlot.Total <- function(self){
       date_labels = "%b-%Y",
       breaks =  seq(from = min(self$plotData$firstMonthDay),to = max(self$plotData$firstMonthDay), by = "6 months"),
     ) + 
-    geom_line(col="#4271c4",linetype = "solid") + 
-    geom_line(aes(y=smoothDDD),linetype="dotted") +
     ggtitle(main_title) +  
     labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
     theme(
@@ -33,7 +31,16 @@ createMonthlyPlot.Total <- function(self){
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
     ) +
     ylim(0,NA)
-  #
+  #Memo til selv: Kun støtte for 12mdn gjennomsnitt hvis kurvene ikke er "stablede kolonner"
+  if(self$curveType == "line"){
+    month_plot <- month_plot + geom_line(col="#4271c4",linetype = "solid")
+    if(self$runAverage){
+      month_plot <- month_plot + geom_line(aes(y=smoothDDD),linetype="dotted")
+    }
+  }else{
+    month_plot <- month_plot  +  geom_area(color = NA, alpha = .4) +
+      geom_line(position = "stack", linewidth = .2)
+  }
   return(month_plot)
 }
 #

@@ -1,4 +1,4 @@
-print('Er naa inne i DDDplotTools.R')
+print('Er naa inne i DDDplotTools55.R')
 #
 #************* Start importere biblioteker
 library(tidyverse)
@@ -30,7 +30,6 @@ classMapper <- function(df){
 }
 #
 getDistinctPeriods <- function(df,desc=TRUE){
-  print('Er nå inne i getDistinctPeriods')
   distinctPeriods <-  df %>%
     dplyr::pull(1) %>%
     unique() %>%
@@ -43,7 +42,6 @@ getDistinctPeriods <- function(df,desc=TRUE){
 }
 # Foreløpig uttrekk av variabler
 getAllLevels <- function(df,Grouping){
-  print('Er nå inne i getAllLevels')
   allLevels <- dplyr::pull(df,Grouping) %>%
     unique() %>%
     sort()
@@ -66,6 +64,7 @@ customizeBrewer <- function(plotObj,palette){
 # Memo til selv: OBSSSSSS Har kun implementert 12 måneders glatting
 # Funksjon for å hente inn månedsvise data
 createMonthlyPlotData <- function(plotObj){
+  print('Er nå inne i createMonthlyPlotData')
   startMonth <- plotObj$startMonth
   #
   plotStart <- startMonth
@@ -132,14 +131,8 @@ createAnnualPlotData <- function(plotObj){
     dplyr::filter(dplyr::pull(.,1)>= plotObj$startYear)
   #
   if(!is.null(plotObj$endYear) && !is.na(plotObj$endYear)){
-    print('Kommer inn i riktig if')
-    print('dim(annualDDD) er først')
-    print(dim(annualDDD))
     annualDDD <- annualDDD %>%
       dplyr::filter(dplyr::pull(.,1) <= plotObj$endYear)
-    #
-    print('dim(annualDDD) er deretter')
-    print(dim(annualDDD))
   }
   #Memo til selv: CountVariable er definert i "global.R" (kanskje bedre å ha i funksjon)
   #Memo til selv: Har ikke
@@ -172,15 +165,24 @@ createGroupedMonthlyPlot <- function(plotObj){
   main_title <- setTitle(plotObj)
   #
   # Memo til selv: https://stackoverflow.com/questions/22309285/how-to-use-a-variable-to-specify-column-name-in-ggplot
-  month_plot <- ggplot( 
-    plotObj$plotData,aes(x=firstMonthDay,y=!!rlang::sym(CountVariable),col=groupFactor))  +
+  plotBasis <- NULL
+  if(plotObj$curveType == "line"){
+    plotBasis <- ggplot( 
+      plotObj$plotData,aes(x=firstMonthDay,y=!!rlang::sym(CountVariable),col=groupFactor)) + 
+      geom_line(linetype = "solid")
+  }else if(plotObj$curveType == "area"){
+    plotBasis <- ggplot( 
+      plotObj$plotData,aes(x=firstMonthDay,y=!!rlang::sym(CountVariable),fill=groupFactor)) +  
+      geom_area(color = NA, alpha = .4) +
+      geom_line(position = "stack", linewidth = .2)
+  }
+  #
+  month_plot <- plotBasis + 
     scale_x_date(
       date_labels = "%b-%Y",
       breaks =  seq(from = min(plotObj$plotData$firstMonthDay),to = max(plotObj$plotData$firstMonthDay), by = "6 months"),
     ) + 
-    geom_line(linetype = "solid") + 
     customCols +
-    geom_line(aes(y=smoothDDD),linetype="dotted") +
     ggtitle(main_title) +  
     labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
     theme(
@@ -189,16 +191,16 @@ createGroupedMonthlyPlot <- function(plotObj){
     ) +
     ylim(0,NA) +
     labs(color =  plotObj$Grouping) 
-  #  
+  #Memo til selv: Kun støtte for 12mdn gjennomsnitt hvis kurvene ikke er "stablede kolonner"
+  if(plotObj$curveType == "line" && plotObj$runAverage){
+      month_plot <- month_plot + geom_line(aes(y=smoothDDD),linetype="dotted")
+  }
   return(month_plot)
 }
 #
 createGroupedAnnualPlot <- function(plotObj){
   customCols <- setColors(plotObj)
   main_title <- setTitle(plotObj)
-  #
-  print('Er nå inne i createGroupedAnnualPlot der plotObj$position er')
-  print(plotObj$position)
   #
   annual_plot <- ggplot(plotObj$plotData,aes(x=yearFactor,y=DDD_1000innb_dogn,fill = groupFactor)) +
     geom_bar(stat="identity",col = "black",position=plotObj$position)  + 
@@ -261,9 +263,6 @@ createSummations <- function(plotObj){
 #  Memo til selv: Hjelpefunksjon som rangerer hver "antibiotikakategori" etter "median av konsum" i historikken
 createLevelRanks <- function(plotObj){
   # Skal her finne alle rangeringene  (med tanke på "CountVariable") til alle de ulike "levels"
-  print('Er nå inne i getLevelRanks')
-  print('head(plotObj$UnfilteredSummations) er')
-  print(head(plotObj$UnfilteredSummations))
   # Gjør nå rangeringen kun på bakgrunn av tidsserien som brukes
   firstPeriod <- plotObj$startMonth
   lastPeriod <- plotObj$endMonth
@@ -298,11 +297,19 @@ createPlotData <- function(plotObj){
 #
 #Memo til selv: plotConstructur tar nå ansvar for de tingene som er felles for alle plottealternativene
 # Memo til selv: Har nå bare én felles "constructor" for alle klassene
-plotConstructor <- function(className,allData,variables = NULL,startMonth =NULL,endMonth = NULL,endYear = NULL,annual = FALSE,
-                            runAverage = TRUE,smoothPeriod = 12,startYear = 2022,position = "stack"){
+plotConstructor <- function(className,allData,variables = NULL,startMonth =NULL,startYear = NULL,endMonth = NULL,endYear = NULL,annual = FALSE,
+                            runAverage = TRUE,smoothPeriod = 12,position = "stack",curveType = "line"){
+  #
+  if(is.null(startMonth)){
+    startMonth <- NA
+  }
   #
   if(is.null(endMonth)){
     endMonth <- NA
+  }
+  #
+  if(is.null(startYear)){
+    startYear <- NA
   }
   #
   if(is.null(endYear)){
@@ -328,7 +335,8 @@ plotConstructor <- function(className,allData,variables = NULL,startMonth =NULL,
        smoothPeriod = 12,
        startYear = startYear,
        endYear = endYear,
-       position = position
+       position = position,
+       curveType = curveType
     ),
     class = className
   )
