@@ -64,7 +64,7 @@ server <-   function(input, output,session){
       # kan startår og sluttår være år der finnes tellinger for bare noen av månedene.
       options <- getDistinctPeriods(allAnnualData,desc = TRUE)
       if(input$tidsoppdeling =="månedlig"){
-        options <- floor(getDistinctPeriods(allMonthlyData,desc = TRUE)/100)
+        options <- unique(floor(getDistinctPeriods(allMonthlyData,desc = TRUE)/100))
       }
       options %>%
         .[.>= input$startYear]
