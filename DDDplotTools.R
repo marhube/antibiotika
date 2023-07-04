@@ -1,4 +1,4 @@
-print('Er naa inne i DDDplotTools55.R')
+print('Er naa inne i DDDplotTools.R')
 #
 #************* Start importere biblioteker
 library(tidyverse)
