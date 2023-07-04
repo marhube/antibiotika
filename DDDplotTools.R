@@ -226,6 +226,18 @@ setTitle <- function(plotObj,...) UseMethod("setTitle")
 # og for å kunne definere "glidende gjennomsnitt" så trengs summasjoner som ikke filtererer på starttid og sluttid 
 # og heller ikke åp variabler så trengs en hjelpestabell med summasjoner som ikke er filtrert på verken tid eller variabler.
 #
+# Enkelte antibiotikakateogorier kan mangle "salgsobservasjoner" for enkelte tidsperioder (i hvert fall måneder). 
+# Gjør derfor en datarens der jeg setter inn "0" for de periodene der disse kategoriene ikke forekommer
+replaceUnobserved <- function(df){
+  print('Er nå inne i replaceUnobserved')
+  vars <- colnames(df)[1:2]
+  expandedFrame <- expand.grid(unique(dplyr::pull(df,1)),unique(dplyr::pull(df,2))) %>% setNames(vars) %>% 
+    dplyr::left_join(df,by = vars)
+  #
+  expandedFrame[colnames(df)[3]] <- dplyr::coalesce(dplyr::pull(expandedFrame,3),0)
+  return(expandedFrame)
+}
+#
 createUnfilteredSummations <- function(plotObj){
   # Memo til selv: Den første kolonnen formodes å inneholde tidsperiodene
   timeCol <- colnames(plotObj$allData)[1]
@@ -234,7 +246,8 @@ createUnfilteredSummations <- function(plotObj){
     dplyr::select(all_of(c(timeCol,CountVariable,plotObj$Grouping))) %>%
     dplyr::group_by(across(all_of(c(timeCol,plotObj$Grouping)))) %>%
     dplyr::summarize(across(all_of(CountVariable), ~  sum(.x))) %>% # Bør kanskje endre til å ha med option "na.rm = TRUE"
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    replaceUnobserved()
   #
   #
   return(summations)
