@@ -243,7 +243,6 @@ createUnfilteredSummations <- function(plotObj){
 
 createSummations <- function(plotObj){
   # Memo til selv: Den første kolonnen formodes å inneholde tidsperiodene
-  timeCol <- colnames(plotObj$allData)[1]
   # Lager hjelpestørrelser for å filtrere på tid
   firstPeriod <- plotObj$startMonth
   lastPeriod <- plotObj$endMonth
