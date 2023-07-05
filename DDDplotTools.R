@@ -6,6 +6,7 @@ library(dplyr)
 library(stringr)
 library(roll) # For roll_mean
 library(rlang) # For rlang::sym()
+library(Hmisc) # For Lag
 #*#************* Slutt importere biblioteker
 #
 #**************** Start import egenutviklet kode
@@ -80,15 +81,15 @@ createMonthlyPlotData <- function(plotObj){
 
   #
   # Memo til selv: Hvis ønskelig legges det til en glidende gjennomsnitt.
-  # I "roll_mean" så blir "width(bredde) lik peridoelengde + 1 (f.eks 13 måneder for 12 måneders gjennomsnitt)
   monthlyDDD <-  plotObj$UnfilteredSummations %>%
     dplyr::filter(dplyr::pull(.,1) >= startMonth,dplyr::pull(.,plotObj$Grouping) %in% plotObj$variables)
   #
-  #Glidende 12 mnd gjennomsnitt
+  #Glidende 12 mnd gjennomsnitt OBS Ønsker gjennomsnittet "etterskuddsvis" dvs. ikke inkludere gjeldende måned,
+  # men derimot gjennomsnitt av foregående 12 måneder.
   if(plotObj$runAverage){
     monthlyDDD <-   monthlyDDD %>% 
       dplyr::group_by(!!sym(plotObj$Grouping)) %>%
-      dplyr::mutate(smoothDDD = roll_mean(!!sym(CountVariable),width = plotObj$smoothPeriod + 1)) %>% 
+      dplyr::mutate(smoothDDD = Lag(roll_mean(!!sym(CountVariable),width = plotObj$smoothPeriod),1)) %>%  
       dplyr::ungroup() %>%
       dplyr::filter(dplyr::pull(.,1) >= plotStart)
   }
