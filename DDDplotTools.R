@@ -61,7 +61,7 @@ customizeBrewer <- function(plotObj,palette){
   #
   return(customBrewer)
 }
-
+#
 # Memo til selv: OBSSSSSS Har kun implementert 12 måneders glatting
 # Funksjon for å hente inn månedsvise data
 createMonthlyPlotData <- function(plotObj){
@@ -78,9 +78,11 @@ createMonthlyPlotData <- function(plotObj){
   #
   # Trekker først ut kun relevant tidsperiode (inklusive det som trengs av data for å lage glidende gjennomnsnitt)
   # Filtrerer også bort evt variabler som ikke huket av
-
+  
   #
   # Memo til selv: Hvis ønskelig legges det til en glidende gjennomsnitt.
+  # I "roll_mean" så blir
+  # 
   monthlyDDD <-  plotObj$UnfilteredSummations %>%
     dplyr::filter(dplyr::pull(.,1) >= startMonth,dplyr::pull(.,plotObj$Grouping) %in% plotObj$variables)
   #
@@ -89,7 +91,7 @@ createMonthlyPlotData <- function(plotObj){
   if(plotObj$runAverage){
     monthlyDDD <-   monthlyDDD %>% 
       dplyr::group_by(!!sym(plotObj$Grouping)) %>%
-      dplyr::mutate(smoothDDD = Lag(roll_mean(!!sym(CountVariable),width = plotObj$smoothPeriod),1)) %>%  
+      dplyr::mutate(smoothDDD = Lag(roll_mean(!!sym(CountVariable),width = plotObj$smoothPeriod),1)) %>% 
       dplyr::ungroup() %>%
       dplyr::filter(dplyr::pull(.,1) >= plotStart)
   }
@@ -160,6 +162,12 @@ createAnnualPlotData <- function(plotObj){
   return(annualDDD)
 }
 #
+genericYlab <- function(){
+  ylab <- "DDD/1000 innbyggere/døgn"
+  return(ylab)
+}
+
+
 createGroupedMonthlyPlot <- function(plotObj){
   # Henter først ut fargene
   customCols <- setColors(plotObj)
@@ -185,7 +193,7 @@ createGroupedMonthlyPlot <- function(plotObj){
     ) + 
     customCols +
     ggtitle(main_title) +  
-    labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
+    labs(x= element_blank(),y = setYlab(plotObj)) + 
     theme(
       plot.title=element_text(hjust=0.5),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
@@ -194,7 +202,7 @@ createGroupedMonthlyPlot <- function(plotObj){
     labs(color =  plotObj$Grouping) 
   #Memo til selv: Kun støtte for 12mdn gjennomsnitt hvis kurvene ikke er "stablede kolonner"
   if(plotObj$curveType == "line" && plotObj$runAverage){
-      month_plot <- month_plot + geom_line(aes(y=smoothDDD),linetype="dotted")
+    month_plot <- month_plot + geom_line(aes(y=smoothDDD),linetype="dotted")
   }
   return(month_plot)
 }
@@ -203,11 +211,11 @@ createGroupedAnnualPlot <- function(plotObj){
   customCols <- setColors(plotObj)
   main_title <- setTitle(plotObj)
   #
-  annual_plot <- ggplot(plotObj$plotData,aes(x=yearFactor,y=DDD_1000innb_dogn,fill = groupFactor)) +
+  annual_plot <- ggplot(plotObj$plotData,aes(x=yearFactor,y=!!rlang::sym(CountVariable),fill = groupFactor)) +
     geom_bar(stat="identity",col = "black",position=plotObj$position)  + 
     customCols  + 
     ggtitle(main_title) +  
-    labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
+    labs(x= element_blank(),y = setYlab(plotObj)) + 
     theme(
       plot.title=element_text(hjust=0.5),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
@@ -221,12 +229,13 @@ createGroupedAnnualPlot <- function(plotObj){
 createMonthlyPlot <- function(plotObj,...) UseMethod("createMonthlyPlot")
 createAnnualPlot <- function(plotObj,...) UseMethod("createAnnualPlot")
 setColors <- function(plotObj,...) UseMethod("setColors")
+setYlab <- function(plotObj,...) UseMethod("setYlab")
 setTitle <- function(plotObj,...) UseMethod("setTitle")
 #Memo til selv: CountVariable er definert i "global.R"
 # Memo til selv:  For å sette riktige farger som ikke endrer seg selv om man varierer hvilke variabler man vil se på
 # og for å kunne definere "glidende gjennomsnitt" så trengs summasjoner som ikke filtererer på starttid og sluttid 
 # og heller ikke åp variabler så trengs en hjelpestabell med summasjoner som ikke er filtrert på verken tid eller variabler.
-#
+
 # Enkelte antibiotikakateogorier kan mangle "salgsobservasjoner" for enkelte tidsperioder (i hvert fall måneder). 
 # Gjør derfor en datarens der jeg setter inn "0" for de periodene der disse kategoriene ikke forekommer
 replaceUnobserved <- function(df){
@@ -250,13 +259,13 @@ createUnfilteredSummations <- function(plotObj){
     dplyr::ungroup() %>%
     replaceUnobserved()
   #
-  #
   return(summations)
 }
 #Hjelpefunksjon for å sette farger. Rangere
 
 createSummations <- function(plotObj){
   # Memo til selv: Den første kolonnen formodes å inneholde tidsperiodene
+  timeCol <- colnames(plotObj$allData)[1]
   # Lager hjelpestørrelser for å filtrere på tid
   firstPeriod <- plotObj$startMonth
   lastPeriod <- plotObj$endMonth
@@ -339,17 +348,17 @@ plotConstructor <- function(className,allData,variables = NULL,startMonth =NULL,
   #Memo til selv: "position" kan alternativt være "dodged" (ved siden av hverandre)
   plotObj <- structure(
     list(allData = allData,
-       Grouping = Grouping,
-       variables = variables,
-       annual = annual,
-       runAverage = runAverage,
-       startMonth = startMonth,
-       endMonth = endMonth,
-       smoothPeriod = 12,
-       startYear = startYear,
-       endYear = endYear,
-       position = position,
-       curveType = curveType
+         Grouping = Grouping,
+         variables = variables,
+         annual = annual,
+         runAverage = runAverage,
+         startMonth = startMonth,
+         endMonth = endMonth,
+         smoothPeriod = 12,
+         startYear = startYear,
+         endYear = endYear,
+         position = position,
+         curveType = curveType
     ),
     class = className
   )
@@ -372,3 +381,4 @@ plotConstructor <- function(className,allData,variables = NULL,startMonth =NULL,
   # Memo til selv: Gjør så et rekursivt kall
   return(plotObj)
 }
+

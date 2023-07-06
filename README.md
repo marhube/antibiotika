@@ -5,6 +5,9 @@ Overvåking av antibiotika
 Breskrivelse filer:
 
 startApp.R - > Kun for å sette igang kjøring  runApp
+-- Appen kan startes inne i R (etter å ha satt working directory til mappen med filene)
+--  ved kommandoen source("startApp.R") 
+
 
 global.R Kjøres før resten av filene
 --

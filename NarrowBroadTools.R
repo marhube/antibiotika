@@ -19,6 +19,11 @@ setTitle.NarrowBroad <- function(self){
   return(main_title)
 }
 #
+setYlab.NarrowBroad <- function(self){
+  ylab <- genericYlab()
+  return(ylab)
+}
+#
 createMonthlyPlot.NarrowBroad <- function(self){
   month_plot <- createGroupedMonthlyPlot(self)
   return(month_plot)

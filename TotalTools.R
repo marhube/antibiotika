@@ -13,19 +13,24 @@ setTitle.Total<- function(self){
   return(main_title)
 }
 #
+setYlab.Total<- function(self){
+  ylab <- genericYlab()
+  return(ylab)
+}
+#
 # Memo til selv: Total-tellinger skiller seg ut ved at det blir veldig liten forskjell på hvordan man lager kurveplott og arealplott
 createMonthlyPlot.Total <- function(self){
   main_title <- setTitle(self)
   #
   month_plot <- ggplot(
     self$plotData,
-    aes(x=firstMonthDay,y=DDD_1000innb_dogn))  +
+    aes(x=firstMonthDay,y=!!rlang::sym(CountVariable)))  +
     scale_x_date(
       date_labels = "%b-%Y",
       breaks =  seq(from = min(self$plotData$firstMonthDay),to = max(self$plotData$firstMonthDay), by = "6 months"),
     ) + 
     ggtitle(main_title) +  
-    labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
+    labs(x= element_blank(),y = setYlab(self)) + 
     theme(
       plot.title=element_text(hjust=0.5),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
@@ -44,22 +49,47 @@ createMonthlyPlot.Total <- function(self){
   return(month_plot)
 }
 #
-# Memo til self: "Ugrupperte grafer/figurer" er kun for totaltellinger
 createAnnualPlot.Total <- function(self){
   main_title <- setTitle(self)
   #
-  annual_plot <- ggplot(self$plotData,aes(x=yearFactor,y=DDD_1000innb_dogn,fill = DDD_1000innb_dogn))  +
+  annual_plot <- ggplot(self$plotData,aes(x=yearFactor,y=!!rlang::sym(CountVariable),fill = !!rlang::sym(CountVariable)))  +
     geom_bar(stat="identity",position = self$position,color = "black")  +
     #Memo til selv: Nyttig info på https://biostats.w.uib.no/color-scale-for-continuous-variables/
     scale_fill_gradient2(
       low = "green",
       mid = "yellow",
       high = "red",
-      midpoint = median(dplyr::pull(self$plotData,"DDD_1000innb_dogn")),
+      midpoint = median(dplyr::pull(self$plotData,CountVariable)),
     ) +
     #
     ggtitle(main_title) +  
-    labs(x= element_blank(),y = "DDD/1000 innbyggere/døgn") + 
+    labs(x= element_blank(),y = setYlab(self)) + 
+    theme(
+      plot.title=element_text(hjust=0.5),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+      legend.title=element_blank()
+    ) +
+    ylim(0,NA)
+  #
+  return(annual_plot)
+}
+#
+# Memo til self: "Ugrupperte grafer/figurer" er kun for totaltellinger
+createAnnualPlot.Total <- function(self){
+  main_title <- setTitle(self)
+  #
+  annual_plot <- ggplot(self$plotData,aes(x=yearFactor,y=!!rlang::sym(CountVariable),fill = !!rlang::sym(CountVariable)))  +
+    geom_bar(stat="identity",position = self$position,color = "black")  +
+    #Memo til selv: Nyttig info på https://biostats.w.uib.no/color-scale-for-continuous-variables/
+    scale_fill_gradient2(
+      low = "green",
+      mid = "yellow",
+      high = "red",
+      midpoint = median(dplyr::pull(self$plotData,CountVariable)),
+    ) +
+    #
+    ggtitle(main_title) +  
+    labs(x= element_blank(),y = setYlab(self)) + 
     theme(
       plot.title=element_text(hjust=0.5),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),

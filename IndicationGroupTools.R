@@ -18,6 +18,11 @@ setTitle.IndicationGroup <- function(self){
   return(main_title)
 }
 #
+setYlab.IndicationGroup<- function(self){
+  ylab <- genericYlab()
+  return(ylab)
+}
+
 createMonthlyPlot.IndicationGroup <- function(self){
   month_plot <- createGroupedMonthlyPlot(self)
   return(month_plot)

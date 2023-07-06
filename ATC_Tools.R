@@ -22,6 +22,11 @@ setTitle.ATC3 <- function(self){
   return(main_title)
 }
 #
+setYlab.ATC3 <- function(self){
+  ylab <- genericYlab()
+  return(ylab)
+}
+#
 createMonthlyPlot.ATC3 <- function(self){
   month_plot <- createGroupedMonthlyPlot(self)
   return(month_plot)
