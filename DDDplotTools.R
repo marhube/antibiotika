@@ -178,12 +178,14 @@ createGroupedMonthlyPlot <- function(plotObj){
   if(plotObj$curveType == "line"){
     plotBasis <- ggplot( 
       plotObj$plotData,aes(x=firstMonthDay,y=!!rlang::sym(CountVariable),col=groupFactor)) + 
-      geom_line(linetype = "solid")
+      geom_line(linetype = "solid") + 
+      scale_color_manual(name = plotObj$Grouping, values = customCols,drop=FALSE)
   }else if(plotObj$curveType == "area"){
     plotBasis <- ggplot( 
       plotObj$plotData,aes(x=firstMonthDay,y=!!rlang::sym(CountVariable),fill=groupFactor)) +  
       geom_area(color = NA, alpha = .4) +
-      geom_line(position = "stack", linewidth = .2)
+      geom_line(position = "stack", size = .2) + 
+      scale_fill_manual(name = plotObj$Grouping, values = customCols,drop=FALSE)
   }
   #
   month_plot <- plotBasis + 
@@ -191,7 +193,6 @@ createGroupedMonthlyPlot <- function(plotObj){
       date_labels = "%b-%Y",
       breaks =  seq(from = min(plotObj$plotData$firstMonthDay),to = max(plotObj$plotData$firstMonthDay), by = "6 months"),
     ) + 
-    customCols +
     ggtitle(main_title) +  
     labs(x= element_blank(),y = setYlab(plotObj)) + 
     theme(
@@ -213,7 +214,7 @@ createGroupedAnnualPlot <- function(plotObj){
   #
   annual_plot <- ggplot(plotObj$plotData,aes(x=yearFactor,y=!!rlang::sym(CountVariable),fill = groupFactor)) +
     geom_bar(stat="identity",col = "black",position=plotObj$position)  + 
-    customCols  + 
+    scale_fill_manual(name = plotObj$Grouping, values = customCols,drop=FALSE) +
     ggtitle(main_title) +  
     labs(x= element_blank(),y = setYlab(plotObj)) + 
     theme(

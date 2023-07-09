@@ -7,15 +7,14 @@ library(stringr)
 
 # Klasse for å lage ugrupperte figurer
 #
-setColors.IndicationGroup <- function(self){
-  customBrewer <- customizeBrewer(self,"RdYlGn")
-  custom_colors <- scale_color_manual(name = self$Grouping, values = customBrewer,drop=FALSE)
-  return(custom_colors)
-}
-#
 setTitle.IndicationGroup <- function(self){
   main_title <- "Totalt salg pr. indikasjonsgruppe"
   return(main_title)
+}
+#
+setColors.IndicationGroup <- function(self){
+  customBrewer <- customizeBrewer(self,"RdYlGn")
+  return(customBrewer)
 }
 #
 setYlab.IndicationGroup<- function(self){
