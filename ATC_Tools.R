@@ -4,7 +4,6 @@ print('Er naa inne i ATC_Tools.R')
 library(tidyverse)
 library(dplyr)
 library(stringr)
-library(RColorBrewer) # For fargepaletter
 #*#************* Slutt importere biblioteker
 #
 #**************** Start import egenutviklet kode

@@ -7,6 +7,10 @@ library(stringr)
 library(roll) # For roll_mean
 library(rlang) # For rlang::sym()
 library(Hmisc) # For Lag
+#******* Start  backendrelatert
+library(ggplot2)
+library(RColorBrewer) # For fargepaletter
+#******* Slutt  backendrelatert
 #*#************* Slutt importere biblioteker
 #
 #**************** Start import egenutviklet kode
