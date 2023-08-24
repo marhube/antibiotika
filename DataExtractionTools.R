@@ -6,7 +6,7 @@ library(stringr) # For str_glue
 library(lubridate)
 #******* Start biblioteker for SQL
 library(odbc) #Lese fra SQL-databasen ved å kjøre SQL-script
-library(RODBC) # Lese fra SQL-databasen
+library(DBI)
 #****************
 #*
 get_sql_filename <- function(annual = FALSE,distinct = FALSE,pattern="\\.sql"){
@@ -55,18 +55,9 @@ get_conn_str <- function(){
   conn_str = 'driver={SQL Server};server=sql-grossist;database=Grossist_DWH;trusted_connection=true;'
   return(conn_str)
 }
-#
-get_conn <- function(conn_str=get_conn_str(),signature="RODBC"){
-  # Kan i denne funksjonen velge om man vil koble til vha funksjoner fra
-  # RODBC-pakken eller odbc-pakken
-  #
-  conn <- NULL
-  #
-  if(signature=="RODBC"){
-    conn <- RODBC::odbcDriverConnect(conn_str)
-  }else if(signature=="odbc"){
-    conn <- odbc::dbConnect(odbc(),.connection_string=conn_str)
-  }
+# Har nå gått over til å bruke kun "odbc-signature" (etter anbefaling om at denne signaturen er nyere enn RODBC)
+get_conn <- function(conn_str=get_conn_str()){
+  conn <- odbc::dbConnect(odbc(),.connection_string=conn_str)
   return(conn)
 }
 #
@@ -111,12 +102,10 @@ execute_query <- function(query,...){
   if(length(query)>1){
     query <- collapse_sql(query)
   }
-  print('Er naa inne i execute_query der substr(query,1,1000) er')
-  print(substr(query,1,1000))
-  #
-  conn <- get_conn(signature="RODBC")
-  query_data <- sqlQuery(conn,query,as.is=TRUE,...)
-  close(conn)
+  conn <- get_conn()
+  query_data <- DBI::dbGetQuery(conn=conn,statement = query)
+  #query_data <- sqlQuery(conn,query,as.is=TRUE,...)
+  dbDisconnect(conn)
   #
   return(query_data)
 }
@@ -127,11 +116,9 @@ extract_all_data <- function(annual =FALSE){
   #
   #******* Sjekk at SQL-kode kjører
   #Memo til selv: Siden nå har "as.is" lik FALSE så må jeg nå jobbe litt med "Total"
-  conn <- get_conn(signature="RODBC")
-  all_data <- sqlQuery(conn,DDD_Query,as.is=FALSE,na.strings = c("")) %>%
-    dplyr::mutate(Total = as.character(Total)) %>%
-    dplyr::mutate(Total = ifelse(is.na(Total),"",Total))
-  close(conn)
+  conn <- get_conn()
+  all_data <-  DBI::dbGetQuery(conn=conn,DDD_Query)
+  dbDisconnect(conn)
   #
   return(all_data)
 }

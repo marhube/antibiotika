@@ -179,9 +179,3 @@ SELECT *
 FROM #basisuttrekk_inndelingsgrupper
 ORDER BY aar,ATCNr
 ;
---
-SELECT aar,SUM(big.DDD_1000innb_dogn) AS DDD_1000innb_dogn
-FROM #basisuttrekk_inndelingsgrupper big
-GROUP BY aar
-ORDER BY aar
-;
